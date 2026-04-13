@@ -1,0 +1,68 @@
+<svg width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景盾牌 -->
+  <path d="M150 20 L250 60 L250 180 Q250 220 150 280 Q50 220 50 180 L50 60 Z" 
+        fill="#C62828" opacity="0.1" stroke="#C62828" stroke-width="3"/>
+  
+  <!-- 奶牛头部轮廓 -->
+  <ellipse cx="150" cy="130" rx="70" ry="75" fill="white" stroke="#000" stroke-width="4"/>
+  
+  <!-- 奶牛斑点 -->
+  <ellipse cx="120" cy="110" rx="20" ry="25" fill="#000"/>
+  <ellipse cx="180" cy="120" rx="18" ry="22" fill="#000"/>
+  <ellipse cx="140" cy="150" rx="15" ry="18" fill="#000"/>
+  
+  <!-- 左角 -->
+  <path d="M100 90 Q95 70 85 60 L80 55 Q78 52 82 50 L90 55 Q100 65 105 85 Z" 
+        fill="#333" stroke="#000" stroke-width="2"/>
+  
+  <!-- 右角 -->
+  <path d="M200 90 Q205 70 215 60 L220 55 Q222 52 218 50 L210 55 Q200 65 195 85 Z" 
+        fill="#333" stroke="#000" stroke-width="2"/>
+  
+  <!-- 皇冠 -->
+  <g transform="translate(150, 40)">
+    <!-- 皇冠主体 -->
+    <path d="M-30 0 L-25 -15 L-15 -5 L0 -20 L15 -5 L25 -15 L30 0 Z" 
+          fill="#C62828" stroke="#000" stroke-width="2"/>
+    <!-- 皇冠底座 -->
+    <rect x="-32" y="0" width="64" height="8" fill="#C62828" stroke="#000" stroke-width="2"/>
+    <!-- 宝石装饰 -->
+    <circle cx="-20" cy="-8" r="3" fill="#FFD700"/>
+    <circle cx="0" cy="-12" r="3" fill="#FFD700"/>
+    <circle cx="20" cy="-8" r="3" fill="#FFD700"/>
+  </g>
+  
+  <!-- 眼睛（自信的表情）-->
+  <ellipse cx="130" cy="125" rx="8" ry="10" fill="#000"/>
+  <ellipse cx="170" cy="125" rx="8" ry="10" fill="#000"/>
+  <circle cx="132" cy="123" r="3" fill="white"/>
+  <circle cx="172" cy="123" r="3" fill="white"/>
+  
+  <!-- 鼻子 -->
+  <ellipse cx="150" cy="145" rx="25" ry="20" fill="#FFB6C1" opacity="0.6"/>
+  <ellipse cx="145" cy="145" rx="5" ry="7" fill="#000"/>
+  <ellipse cx="155" cy="145" rx="5" ry="7" fill="#000"/>
+  
+  <!-- 嘴巴（坚定的微笑）-->
+  <path d="M135 160 Q150 168 165 160" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>
+  
+  <!-- 文字弧形路径 -->
+  <defs>
+    <path id="textArc" d="M 60 220 Q 150 250 240 220"/>
+  </defs>
+  
+  <!-- CLASS KING 文字 -->
+  <text font-family="'Impact', 'Arial Black', sans-serif" font-size="32" font-weight="900" letter-spacing="2">
+    <textPath href="#textArc" startOffset="50%" text-anchor="middle" fill="#C62828" stroke="#000" stroke-width="1">
+      CLASS KING
+    </textPath>
+  </text>
+  
+  <!-- 复古颗粒效果 -->
+  <filter id="grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" result="noise"/>
+    <feColorMatrix in="noise" type="saturate" values="0"/>
+    <feBlend in="SourceGraphic" in2="noise" mode="multiply" result="blend"/>
+  </filter>
+  <rect width="300" height="300" fill="transparent" filter="url(#grain)" opacity="0.15"/>
+</svg>

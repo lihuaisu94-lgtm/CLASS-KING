@@ -2,25 +2,10 @@
 
 import { useState } from "react";
 import { AlertTriangle, Sparkles, WandSparkles, CheckCircle2 } from "lucide-react";
-import { ParsedTaskResponse } from "@/lib/ai/task-parser";
-import { mapCategoryToTask } from "@/lib/ai/task-parser";
+import { ParsedTaskResponse, mapCategoryToTask } from "@/lib/ai/task-parser";
 import { useTaskStore } from "@/store/task-store";
 import { normalizeTaskMode } from "@/lib/task-engine";
-
-function getEstimatedMinutes(startTime: string, endTime: string) {
-  if (!startTime || !endTime) {
-    return undefined;
-  }
-
-  const start = new Date(startTime);
-  const end = new Date(endTime);
-
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    return undefined;
-  }
-
-  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60_000));
-}
+import { getEstimatedMinutes, cleanISOTimeInText } from "@/lib/time-utils";
 
 function highlightLocations(text: string) {
   const locationPattern = /([A-Z]\d?-\d{3,4}|[A-Z]\d?栋\d{3,4}|创客大厦|行政楼|图书馆|教学楼)/g;
@@ -28,19 +13,20 @@ function highlightLocations(text: string) {
 }
 
 function formatOfficialDocument(text: string) {
-  // 将文本按照板块分割并格式化
   const sections = text.split(/\n\n/);
-  return sections.map((section, index) => {
-    if (section.includes('【时间红线】')) {
-      return `<div class="mb-6"><h3 class="text-base font-bold text-primary mb-3">【时间红线】</h3><p class="text-ink leading-relaxed-plus">${section.replace('【时间红线】', '').trim()}</p></div>`;
-    } else if (section.includes('【行动清单】')) {
-      return `<div class="mb-6"><h3 class="text-base font-bold text-primary mb-3">【行动清单】</h3><p class="text-ink leading-relaxed-plus whitespace-pre-line">${section.replace('【行动清单】', '').trim()}</p></div>`;
-    } else if (section.includes('【材料/地点清单】')) {
-      return `<div class="mb-6"><h3 class="text-base font-bold text-primary mb-3">【材料/地点清单】</h3><p class="text-ink leading-relaxed-plus whitespace-pre-line">${section.replace('【材料/地点清单】', '').trim()}</p></div>`;
-    } else if (section.includes('【执行建议】')) {
-      return `<div class="mb-6"><h3 class="text-base font-bold text-primary mb-3">【执行建议】</h3><p class="text-ink leading-relaxed-plus">${section.replace('【执行建议】', '').trim()}</p></div>`;
+  return sections.map((section) => {
+    const cleanSection = cleanISOTimeInText(section);
+    
+    if (cleanSection.includes('【时间红线】')) {
+      return `<div class="mb-6"><h3 class="text-base font-bold text-primary mb-3">【时间红线】</h3><p class="text-ink leading-relaxed-plus">${cleanSection.replace('【时间红线】', '').trim()}</p></div>`;
+    } else if (cleanSection.includes('【行动清单】')) {
+      return `<div class="mb-6"><h3 class="text-base font-bold text-primary mb-3">【行动清单】</h3><p class="text-ink leading-relaxed-plus whitespace-pre-line">${cleanSection.replace('【行动清单】', '').trim()}</p></div>`;
+    } else if (cleanSection.includes('【材料/地点清单】')) {
+      return `<div class="mb-6"><h3 class="text-base font-bold text-primary mb-3">【材料/地点清单】</h3><p class="text-ink leading-relaxed-plus whitespace-pre-line">${cleanSection.replace('【材料/地点清单】', '').trim()}</p></div>`;
+    } else if (cleanSection.includes('【执行建议】')) {
+      return `<div class="mb-6"><h3 class="text-base font-bold text-primary mb-3">【执行建议】</h3><p class="text-ink leading-relaxed-plus">${cleanSection.replace('【执行建议】', '').trim()}</p></div>`;
     }
-    return `<p class="text-ink leading-relaxed-plus mb-4">${section}</p>`;
+    return `<p class="text-ink leading-relaxed-plus mb-4">${cleanSection}</p>`;
   }).join('');
 }
 
@@ -122,7 +108,7 @@ export function AiTaskInput() {
     <section className="card-float rounded-lg p-6 transition-shadow hover:shadow-floatHover">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
-          <p className="inline-flex items-center gap-2 rounded-md bg-primaryLight px-3 py-1.5 text-xs font-bold text-primary">
+          <p className="inline-flex items-center gap-2 rounded-full bg-primaryLight px-4 py-1.5 text-xs font-bold text-primary">
             <Sparkles className="h-4 w-4" />
             Phase 2 · AI 智能录入
           </p>
@@ -137,7 +123,7 @@ export function AiTaskInput() {
           type="button"
           onClick={handleParse}
           disabled={isLoading || !rawText.trim()}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold text-white shadow-float transition hover:bg-primaryDark hover:shadow-floatHover disabled:cursor-not-allowed disabled:bg-gray-400 disabled:opacity-60 sm:self-start"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-bold text-white shadow-float transition hover:bg-primaryDark hover:shadow-floatHover hover:scale-105 disabled:cursor-not-allowed disabled:bg-textTertiary disabled:opacity-60 disabled:hover:scale-100 sm:self-start"
         >
           <WandSparkles className="h-4 w-4" />
           {isLoading ? "AI 解析中..." : "开始解析"}
@@ -150,20 +136,20 @@ export function AiTaskInput() {
           <textarea
             value={rawText}
             onChange={(event) => setRawText(event.target.value)}
-            className="min-h-[500px] w-full rounded-lg border-0 bg-cardBg p-5 text-ink shadow-float outline-none ring-1 ring-gray-200 transition focus:ring-2 focus:ring-primary"
+            className="min-h-[500px] w-full rounded-xl border-0 bg-cardBg p-5 text-ink shadow-soft outline-none ring-1 ring-primaryLight transition focus:ring-2 focus:ring-primary"
             placeholder="将学校通知、群聊记录或临时安排粘贴到这里..."
           />
         </label>
 
-        <div className="flex h-[600px] flex-col overflow-hidden rounded-lg shadow-float">
-          <div className="flex-1 overflow-y-auto bg-cardBg p-6 smooth-scroll">
+        <div className="flex h-[600px] flex-col overflow-hidden rounded-xl shadow-float">
+          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-cardBg to-primaryLight/20 p-6 smooth-scroll">
             <div className="mb-4 flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-wider text-primary">执行攻略预览</p>
               {lastResult && (
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="text-xs font-semibold text-textSecondary hover:text-ink"
+                  className="rounded-full px-3 py-1 text-xs font-semibold text-textSecondary transition hover:bg-primaryLight hover:text-primary"
                 >
                   重置
                 </button>
@@ -172,34 +158,85 @@ export function AiTaskInput() {
 
             {lastResult ? (
               <div className="fade-in-up space-y-6">
-                <div className="border-l-4 border-primary bg-primaryLight px-4 py-3">
+                {/* 时间敏感度警告 */}
+                {lastResult.isTimeSensitive && (
+                  <div className="rounded-lg border-l-4 border-warning bg-warning/20 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-warning" />
+                      <span className="text-sm font-bold text-ink">⚡ 时间敏感任务</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 标题卡片 */}
+                <div className="rounded-lg border-l-4 border-primary bg-white px-5 py-4 shadow-soft">
                   <h2 className="text-lg font-bold text-ink">{lastResult.title}</h2>
+                  {lastResult.location ? (
+                    <p className="mt-2 text-sm text-textSecondary">
+                      📍 地点：<span className="location-highlight">{lastResult.location}</span>
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-sm text-textTertiary">
+                      📍 地点：<span className="italic">待确认</span>
+                    </p>
+                  )}
+                  {!lastResult.startTime && !lastResult.endTime && (
+                    <p className="mt-1 text-sm text-textTertiary">
+                      ⏰ 时间：<span className="italic">待确认</span>
+                    </p>
+                  )}
                 </div>
 
+                {/* 执行攻略内容 */}
                 <div 
-                  className="official-document text-sm"
+                  className="official-document rounded-lg bg-white p-5 text-sm shadow-soft"
                   dangerouslySetInnerHTML={{ 
                     __html: highlightLocations(formatOfficialDocument(lastResult.summary))
                   }}
                 />
 
-                {lastResult.stakeholders && lastResult.stakeholders.length > 0 && (
-                  <div>
-                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-textTertiary">相关人员</p>
+                {/* 警告提示 */}
+                {lastResult.warnings && lastResult.warnings.length > 0 && (
+                  <div className="rounded-lg bg-warning/10 p-4 shadow-soft">
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-textTertiary">⚠️ 注意事项</p>
+                    <ul className="space-y-1.5">
+                      {lastResult.warnings.map((warning, index) => (
+                        <li key={index} className="flex items-start gap-2 text-sm text-ink">
+                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-warning"></span>
+                          <span>{warning}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* 相关人员 */}
+                {lastResult.stakeholders && lastResult.stakeholders.length > 0 ? (
+                  <div className="rounded-lg bg-white p-4 shadow-soft">
+                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-textTertiary">相关人员</p>
                     <div className="flex flex-wrap gap-2">
                       {lastResult.stakeholders.map((person, index) => (
-                        <span key={index} className="rounded-md bg-primaryLight px-3 py-1 text-sm font-semibold text-primary">
+                        <span key={index} className="rounded-full bg-lavender/30 px-4 py-1.5 text-sm font-semibold text-ink">
                           {person}
                         </span>
                       ))}
                     </div>
                   </div>
+                ) : (
+                  <div className="rounded-lg bg-white p-4 shadow-soft">
+                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-textTertiary">相关人员</p>
+                    <p className="text-sm italic text-textTertiary">未指定具体人员</p>
+                  </div>
                 )}
 
+                {/* 任务属性标签 */}
                 <div className="flex flex-wrap gap-2 pt-2">
-                  <span className="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold text-ink">{lastResult.type}</span>
-                  <span className="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold text-ink">{lastResult.category}</span>
-                  <span className="rounded-md bg-primary px-3 py-1 text-xs font-bold text-white">P{lastResult.priority}</span>
+                  <span className="rounded-full bg-peach/40 px-4 py-1.5 text-xs font-semibold text-ink">{lastResult.type}</span>
+                  <span className="rounded-full bg-accent/40 px-4 py-1.5 text-xs font-semibold text-ink">{lastResult.category}</span>
+                  <span className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white">P{lastResult.priority}</span>
+                  {lastResult.isTimeSensitive && (
+                    <span className="rounded-full bg-warning px-4 py-1.5 text-xs font-bold text-white">⚡ 紧急</span>
+                  )}
                 </div>
               </div>
             ) : (
@@ -211,9 +248,9 @@ export function AiTaskInput() {
             )}
 
             {error && (
-              <div className="mt-4 rounded-lg border-l-4 border-red-500 bg-red-50 px-4 py-4 text-sm text-red-800">
+              <div className="mt-4 rounded-xl border-l-4 border-warning bg-warning/20 px-5 py-4 text-sm text-ink shadow-soft">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
                   <div className="space-y-1">
                     <p className="font-bold">解析失败</p>
                     <p className="leading-relaxed">{error}</p>
@@ -224,11 +261,11 @@ export function AiTaskInput() {
           </div>
 
           {lastResult && (
-            <div className="bg-primary p-4">
+            <div className="bg-gradient-to-r from-primary to-primaryDark p-4">
               <button
                 type="button"
                 onClick={handleConfirm}
-                className="flex w-full items-center justify-center gap-2 rounded-md bg-white px-6 py-3.5 text-base font-bold text-primary transition hover:bg-gray-50"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-base font-bold text-primary shadow-soft transition hover:scale-105 hover:shadow-float"
               >
                 <CheckCircle2 className="h-5 w-5" />
                 确认并归档到事务看板

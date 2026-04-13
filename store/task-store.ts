@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { TaskConflict } from "@/lib/conflict-engine";
-import { buildConflictMessage, findTaskConflicts } from "@/lib/conflict-engine";
+import { findTaskConflicts } from "@/lib/conflict-engine";
 import { seedTasks } from "@/lib/mock-data";
 import { createId, getTaskPriority, normalizeDateValue } from "@/lib/task-engine";
 import { loadTasks, saveTasks } from "@/lib/storage";
@@ -129,8 +129,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     const conflicts = findTaskConflicts(nextTask, existingTasks);
 
     if (conflicts.length > 0) {
-      const message = buildConflictMessage(nextTask, conflicts);
-      console.warn(message, conflicts);
       set({
         pendingConflict: {
           nextTask,

@@ -1,4 +1,5 @@
 import { Task, TaskDomain, TaskMode, TaskPriority, UrgencyLevel } from "@/types/task";
+import { cleanTimezone, formatDateTime as formatTime, normalizeDateValue as normalizeDate } from "@/lib/time-utils";
 
 const domainPriority: Record<TaskDomain, TaskPriority> = {
   party: 1,
@@ -32,10 +33,7 @@ export function getModeLabel(mode: Task["mode"]) {
 }
 
 export function getTaskPriority(domain: TaskDomain, isSingleThread: boolean): TaskPriority {
-  if (isSingleThread) {
-    return 5;
-  }
-
+  if (isSingleThread) return 5;
   return domainPriority[domain];
 }
 
@@ -48,25 +46,20 @@ export function getScheduleStatusLabel(status: Task["scheduleStatus"]) {
 }
 
 export function normalizeTaskMode(value?: string): TaskMode {
-  if (value === "线下" || value === "offline") {
-    return "offline";
-  }
-
+  if (value === "线下" || value === "offline") return "offline";
   return "online";
 }
 
 export function normalizeTaskCategory(category?: string) {
   const normalized = category?.trim() ?? "";
-
   return categoryAliases[normalized] ?? { domain: "class" as TaskDomain, isSingleThread: false };
 }
 
 export function getUrgency(task: Task, now = new Date()): UrgencyLevel {
-  if (!task.deadline) {
-    return "relaxed";
-  }
+  if (!task.deadline) return "relaxed";
 
-  const diffHours = (new Date(task.deadline).getTime() - now.getTime()) / 36e5;
+  const deadlineDate = new Date(cleanTimezone(task.deadline));
+  const diffHours = (deadlineDate.getTime() - now.getTime()) / 36e5;
 
   if (diffHours <= 24) return "urgent";
   if (diffHours <= 72) return "normal";
@@ -97,13 +90,7 @@ export function getPriorityScore(task: Task, now = new Date()) {
   );
   const singleThreadPenalty = task.isSingleThread ? -5 : 0;
 
-  return (
-    priorityWeight +
-    urgencyWeight +
-    stakeholderWeight +
-    timeWeight +
-    singleThreadPenalty
-  );
+  return priorityWeight + urgencyWeight + stakeholderWeight + timeWeight + singleThreadPenalty;
 }
 
 export function sortTasksByPriority(tasks: Task[], now = new Date()) {
@@ -112,53 +99,20 @@ export function sortTasksByPriority(tasks: Task[], now = new Date()) {
 
 export function sortTasksBySchedule(tasks: Task[]) {
   return [...tasks].sort((a, b) => {
-    if (a.scheduleStatus === "backlog" && b.scheduleStatus !== "backlog") {
-      return 1;
-    }
+    if (a.scheduleStatus === "backlog" && b.scheduleStatus !== "backlog") return 1;
+    if (b.scheduleStatus === "backlog" && a.scheduleStatus !== "backlog") return -1;
 
-    if (b.scheduleStatus === "backlog" && a.scheduleStatus !== "backlog") {
-      return -1;
-    }
+    const aTime = a.startTime ? new Date(cleanTimezone(a.startTime)).getTime() : Number.MAX_SAFE_INTEGER;
+    const bTime = b.startTime ? new Date(cleanTimezone(b.startTime)).getTime() : Number.MAX_SAFE_INTEGER;
 
-    const aTime = a.startTime ? new Date(a.startTime).getTime() : Number.MAX_SAFE_INTEGER;
-    const bTime = b.startTime ? new Date(b.startTime).getTime() : Number.MAX_SAFE_INTEGER;
-
-    if (aTime !== bTime) {
-      return aTime - bTime;
-    }
-
+    if (aTime !== bTime) return aTime - bTime;
     return a.priority - b.priority;
   });
 }
 
-export function formatDateTime(value?: string) {
-  if (!value) return "未设置";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "未设置";
-  }
-
-  return new Intl.DateTimeFormat("zh-CN", {
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-export function normalizeDateValue(value?: string) {
-  if (!value) {
-    return undefined;
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return undefined;
-  }
-
-  return date.toISOString();
-}
+// 导出统一的时间处理函数
+export const formatDateTime = formatTime;
+export const normalizeDateValue = normalizeDate;
 
 export function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;

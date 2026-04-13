@@ -8,8 +8,8 @@
 
 body {
   min-height: 100vh;
-  color: #2D2D2D;
-  background: #F2F2F2;
+  color: #4A5568;
+  background: #FAF9F6;
   font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
@@ -17,9 +17,21 @@ body {
   box-sizing: border-box;
 }
 
+/* Impact 字体（美式复古风格）*/
+.font-impact {
+  font-family: 'Impact', 'Arial Black', 'Helvetica Neue', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
 .card-float {
   background: #FFFFFF;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 16px rgba(232, 180, 184, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+
+.card-float:hover {
+  box-shadow: 0 4px 24px rgba(232, 180, 184, 0.25);
 }
 
 .smooth-scroll {
@@ -27,8 +39,18 @@ body {
 }
 
 .location-highlight {
-  color: #A52A2A;
+  color: #E8B4B8;
   font-weight: 700;
+  background: #FFF0F0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.official-document h3 {
+  color: #E8B4B8;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
 }
 
 @keyframes fadeInUp {
@@ -43,5 +65,26 @@ body {
 }
 
 .fade-in-up {
-  animation: fadeInUp 0.5s ease-out;
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 优化滚动条样式 - 马卡龙风格 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF9F6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E8B4B8;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D4949A;
 }

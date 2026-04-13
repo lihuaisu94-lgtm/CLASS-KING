@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BrandHero } from "@/components/dashboard/brand-hero";
 import { AiTaskInput } from "@/components/dashboard/ai-task-input";
 import { AiReorderPanel } from "@/components/dashboard/ai-reorder-panel";
 import { BoardControls } from "@/components/dashboard/board-controls";
@@ -25,6 +26,7 @@ export function DashboardShell() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[1600px] flex-col gap-6 bg-white px-4 py-6 md:px-6 xl:px-8">
+      <BrandHero />
       <DashboardHeader />
       <AiTaskInput />
       <StressTestPanel />
